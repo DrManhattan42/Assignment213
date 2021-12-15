@@ -1,7 +1,6 @@
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.util.*;
 
 public class Mapping {
@@ -42,13 +41,15 @@ public class Mapping {
          * complete the vocabulary HashMap <Key, Value> with all directions.
          * use the directions.txt file and crosscheck with the ExpectedInput and ExpectedOutput files to find the keys and the values
          */
-
+        vocabulary.put("QUIT", "Q");
+        vocabulary.put("Up", "U");
+        vocabulary.put("Down", "D");;
         vocabulary.put("North", "N");
-        vocabulary.put("North East", "NE");
-        vocabulary.put("North West", "NW");
+        vocabulary.put("NorthEast", "NE");
+        vocabulary.put("NorthWest", "NW");
         vocabulary.put("South", "S");
-        vocabulary.put("North East", "NE");
-        vocabulary.put("South West", "SW");
+        vocabulary.put("SouthEast", "SE");
+        vocabulary.put("SouthWest", "SW");
         vocabulary.put("East", "E");
         vocabulary.put("West", "W");
 
@@ -73,7 +74,6 @@ public class Mapping {
          * use the FileLogger and ConsoleLogger objects
          */
 
-
         String path = System.getProperty("user.dir") + File.separator +
                       "locations.txt";
         HashMap<Integer,String> locations = new HashMap<Integer,String>();
@@ -93,11 +93,9 @@ public class Mapping {
 
  boolean ok = true;
         while (ok) {
-        //while (true) {
             /** TODO
              * verify if the location is exit
              */
-
             Set set = locations.entrySet();
             Iterator iterator = set.iterator();
             while(iterator.hasNext()) {
@@ -121,7 +119,7 @@ public class Mapping {
                 Integer>();
             try{
                 path = System.getProperty("user.dir") + File.separator +
-                                              "directions.txt";
+                                           "directions.txt";
                 File f  = new File(path);
                 BufferedReader br = new BufferedReader(new FileReader(f));
                 String line;
@@ -137,48 +135,38 @@ public class Mapping {
             }
 
             /** TODO
-             * input a direction
-             * ensure that the input is converted to uppercase
-             */
-             System.out.print("please enter a direction which you want to " +
-                                "go: ");
-            String directionLetter = sc.next().toUpperCase();
-            System.out.println("");
-
-            /** TODO
              * print the available exits (to both console and file)
              * crosscheck with the ExpectedOutput files
              * Hint: you can use a StringBuilder to append the exits
              */
-            consoleLogger.log("possible exits for Location: "+ locations.get(locationID));
-            fileLogger.log("possible exits for Location: "+ locations.get(locationID));
+            consoleLogger.log("possible exits for Location:");
+            fileLogger.log("possible exits for Location:");
             set = exits.entrySet();
             iterator = set.iterator();
             int index =1;
-            Integer foundExitID= -1;
-            String foundExitDescr= null;
+
             while(iterator.hasNext()) {
-                Map.Entry entry = (Map.Entry)iterator.next();
-                Integer exitID = (Integer)entry.getValue();
-                consoleLogger.log(index+". "+locations.get(exitID));
-                fileLogger.log(index+". "+locations.get(exitID));
-                index++;
-                if(directionLetter.equals((String)entry.getKey())){
-                    foundExitID = (Integer)entry.getValue();
-                    foundExitDescr = locations.get(foundExitID);
+                Map.Entry entry        = (Map.Entry) iterator.next();
+                Integer   exitID       = (Integer) entry.getValue();
+                String    directionKey = (String) entry.getKey();
+                for (Map.Entry<String, String> entry1 : vocabulary.entrySet()) {
+                    if (entry1.getValue()
+                              .equals(directionKey.trim().toUpperCase())) {
+                        consoleLogger.log(index+". " +(String) entry1.getKey());
+                        fileLogger.log(index + ". " + (String) entry1.getKey());
+                    }
                 }
+                index++;
             }
-            if(foundExitID > -1){
-                //System.out.println(foundExitDescr);
-                locationID = foundExitID;
-                ok=true;
-            }else{
-                String error = "\"Unfortunately you cannot proceed in that " +
-                               "direction";
-                consoleLogger.log(error);
-                fileLogger.log(error);
-                ok=false;
-            }
+            /** TODO
+                 * input a direction
+                 * ensure that the input is converted to uppercase
+                 */
+           System.out.print("please enter a direction which you want to go: ");
+           String []directions = (sc.nextLine().toUpperCase()).split(" ");
+            String direction = directions[directions.length -1];
+
+           System.out.println("");
 
             /** TODO
              * are we dealing with a letter / word for the direction to go to?
@@ -194,7 +182,39 @@ public class Mapping {
              * otherwise print an error message (to both console and file)
              * check the ExpectedOutput files
              */
-        }
+
+           String directionValue = null;
+           String directionKey = null;
+           for (Map.Entry<String, String> entry1 : vocabulary.entrySet()) {
+               if (entry1.getKey()
+                     .toUpperCase()
+                     .equals(direction.trim())) {
+                         directionValue = entry1.getKey();
+                         directionKey = entry1.getValue();
+               }else if(entry1.getValue().toUpperCase().equals(direction)){
+                    directionValue = entry1.getKey();
+                    directionKey = entry1.getValue();
+               }
+           }
+
+           if(directionKey != null){
+                for (Map.Entry<String, Integer> entry1 : exits.entrySet()) {
+                    if(entry1.getKey()
+                             .toUpperCase()
+                             .equals(directionKey.toUpperCase())) {
+                             locationID = entry1.getValue();
+                                 ok=true;
+                                 break;
+                       }else{ ok=false; }
+                   }
+           }else{  ok=false;  }
+
+           if(!ok){
+                String error = "Unfortunately you cannot proceed in that direction";
+                consoleLogger.log(error);
+                fileLogger.log(error);
+           }
+       }
     }
 
     public static void main(String[] args) {
